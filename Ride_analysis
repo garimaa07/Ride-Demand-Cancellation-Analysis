@@ -1,0 +1,78 @@
+CREATE DATABASE ride_analysis;
+USE ride_analysis;
+
+SELECT COUNT(*) FROM rides2 ;
+
+-- 1. Total Rides
+SELECT COUNT(*) AS total_rides
+FROM rides2;
+
+-- 2. Cancellation Rate
+SELECT 
+    COUNT(CASE WHEN Ride_Status = 'Cancelled' THEN 1 END) * 100.0 / COUNT(*) AS cancellation_rate
+FROM rides2;
+
+-- 3. Completed Rides
+SELECT 
+    COUNT(CASE WHEN Ride_Status = 'Completed' THEN 1 END) AS completed_rides
+FROM rides2;
+
+-- 4.CANCELLATION RATE (MOST IMPORTANT KPI)
+SELECT 
+    COUNT(*) AS total_rides,
+    SUM(CASE WHEN Ride_Status = 'Cancelled' THEN 1 ELSE 0 END) AS cancelled_rides,
+    ROUND(SUM(CASE WHEN Ride_Status = 'Cancelled' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS cancellation_rate_percent
+FROM rides2;
+
+-- 5. PEAK HOURS ANALYSIS
+SELECT 
+    HOUR(Request_Time) AS hour,
+    COUNT(*) AS total_rides
+FROM rides2
+GROUP BY hour
+ORDER BY total_rides DESC;
+
+-- 6.CANCELLATION BY HOUR
+SELECT 
+    HOUR(Request_Time) AS hour,
+    COUNT(*) AS total_rides,
+    SUM(CASE WHEN Ride_Status = 'Cancelled' THEN 1 ELSE 0 END) AS cancelled_rides
+FROM rides2
+GROUP BY hour
+ORDER BY cancelled_rides DESC;
+
+-- 7. WHO CANCELS MORE?
+SELECT 
+    Cancelled_By,
+    COUNT(*) AS total
+FROM rides2
+WHERE Ride_Status = 'Cancelled'
+GROUP BY Cancelled_By;
+ORDER BY total DESC;
+
+-- 8. COMPLETION RATE
+SELECT 
+    ROUND(SUM(CASE WHEN Ride_Status = 'Completed' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS completion_rate
+FROM rides2;
+
+-- 9.Business Insight Query
+SELECT 
+    CASE 
+        WHEN HOUR(Request_Time) BETWEEN 7 AND 10 THEN 'Morning Peak'
+        WHEN HOUR(Request_Time) BETWEEN 17 AND 21 THEN 'Evening Peak'
+        ELSE 'Off Peak'
+    END AS time_slot,
+    COUNT(*) AS total_rides,
+    ROUND(SUM(CASE WHEN Ride_Status = 'Cancelled' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS cancellation_rate
+FROM rides2
+GROUP BY time_slot;
+
+-- 10. Add Cancellation Rate by Hour
+SELECT 
+    HOUR(Request_Time) AS hour,
+    COUNT(*) AS total_rides,
+    SUM(CASE WHEN Ride_Status = 'Cancelled' THEN 1 ELSE 0 END) AS cancelled_rides,
+    ROUND(SUM(CASE WHEN Ride_Status = 'Cancelled' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS cancellation_rate
+FROM rides2
+GROUP BY hour
+ORDER BY cancellation_rate DESC;
